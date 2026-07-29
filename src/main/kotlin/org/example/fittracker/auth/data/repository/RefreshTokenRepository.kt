@@ -1,5 +1,6 @@
-package org.example.fittracker.auth.data
+package org.example.fittracker.auth.data.repository
 
+import org.example.fittracker.auth.data.models.RefreshToken
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional

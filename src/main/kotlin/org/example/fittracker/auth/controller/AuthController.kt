@@ -1,6 +1,7 @@
 package org.example.fittracker.auth.controller
 
-import org.example.fittracker.auth.controller.dtos.AuthRequest
+import org.example.fittracker.auth.controller.dtos.LoginRequest
+import org.example.fittracker.auth.controller.dtos.RegisterRequest
 import org.example.fittracker.auth.controller.dtos.LogoutRequest
 import org.example.fittracker.auth.controller.dtos.RefreshRequest
 import org.example.fittracker.auth.data.TokenPair
@@ -17,18 +18,19 @@ class AuthController(
 ) {
     @PostMapping("/register")
     fun register(
-        @RequestBody body: AuthRequest
+        @RequestBody body: RegisterRequest
     ) {
         authService.register(
             email = body.email,
             password =  body.password,
-            username =  body.username.toString()
+            firstName =  body.firstName,
+            lastName = body.lastName
         )
     }
 
     @PostMapping("/login")
     fun login(
-        @RequestBody body: AuthRequest
+        @RequestBody body: LoginRequest
     ): TokenPair {
         return authService.login(email = body.email, password =  body.password)
     }

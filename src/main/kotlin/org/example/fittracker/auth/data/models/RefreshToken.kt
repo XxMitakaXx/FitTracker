@@ -1,18 +1,15 @@
-package org.example.fittracker.auth.data
+package org.example.fittracker.auth.data.models
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
-import org.example.fittracker.user.data.UserEntity
+import java.time.Instant
 import java.util.UUID
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Entity
@@ -29,8 +26,8 @@ data class RefreshToken(
     val hashedToken: String,
 
     @Column
-    val expiresAt: java.time.Instant,
+    val expiresAt: Instant,
 
     @Column
-    val createdAt: Instant = Clock.System.now(),
+    val createdAt: kotlin.time.Instant = Clock.System.now(),
 )

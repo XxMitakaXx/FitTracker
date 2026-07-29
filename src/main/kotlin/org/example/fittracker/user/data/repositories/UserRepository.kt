@@ -1,5 +1,6 @@
-package org.example.fittracker.user.data
+package org.example.fittracker.user.data.repositories
 
+import org.example.fittracker.user.data.models.UserEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.Optional

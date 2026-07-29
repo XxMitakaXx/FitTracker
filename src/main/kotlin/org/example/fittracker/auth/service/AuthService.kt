@@ -1,13 +1,13 @@
 package org.example.fittracker.auth.service
 
 import jakarta.transaction.Transactional
-import org.example.fittracker.auth.data.RefreshToken
-import org.example.fittracker.auth.data.RefreshTokenRepository
+import org.example.fittracker.auth.data.models.RefreshToken
+import org.example.fittracker.auth.data.repository.RefreshTokenRepository
 import org.example.fittracker.auth.data.TokenPair
 import org.example.fittracker.auth.util.HashEncoder
 import org.example.fittracker.auth.util.toHexString
-import org.example.fittracker.user.data.UserEntity
-import org.example.fittracker.user.data.UserRepository
+import org.example.fittracker.user.data.models.UserEntity
+import org.example.fittracker.user.data.repositories.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
 import org.springframework.security.authentication.BadCredentialsException
@@ -25,8 +25,8 @@ class AuthService(
     private val hashEncoder: HashEncoder,
     private val refreshTokenRepository: RefreshTokenRepository
 ) {
-    fun register(email: String, password: String, username: String) {
-        val user = userRepository.findByEmail(email)
+    fun register(email: String, password: String,firstName: String, lastName: String,) {
+        val user = userRepository.findByEmail(email = email)
         if (user.isPresent) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "A user with that email already exists.")
         }
@@ -34,8 +34,9 @@ class AuthService(
         userRepository.save(
             UserEntity(
                 email = email.trim(),
-                hashedPassword = hashEncoder.encode(password),
-                username = username.trim()
+                hashedPassword = hashEncoder.encode(raw = password),
+                firstName = firstName.trim(),
+                lastName = lastName.trim()
             )
         )
     }
@@ -57,7 +58,7 @@ class AuthService(
             val newAccessToken = jwtService.generateAccessToken(userUUID.toHexString())
             val newRefreshToken = jwtService.generateRefreshToken(userUUID.toHexString())
 
-            storeRefreshToken(userUUID, newRefreshToken)
+            storeRefreshToken(userId = userUUID, rawRefreshToken =  newRefreshToken)
 
             return TokenPair(
                 accessToken = newAccessToken,

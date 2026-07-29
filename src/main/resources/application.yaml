@@ -16,6 +16,6 @@ spring:
       ddl-auto: update
   sql:
     init:
-      mode: never
+      mode: always
   jwt:
     secret: ${JWT_SECRET_BASE64}
