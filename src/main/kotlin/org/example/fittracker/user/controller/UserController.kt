@@ -5,6 +5,7 @@ import org.example.fittracker.user.service.dtos.ProgressBodyWeightDTO
 import org.example.fittracker.user.service.dtos.UserStartingTrainingStatsDTO
 import org.example.fittracker.user.service.dtos.UserStatsDTO
 import org.example.fittracker.user.service.dtos.UserTrainingDataDTO
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -34,5 +35,10 @@ class UserController(
     @PostMapping("/progress_weight")
     fun saveProgressWeight(@RequestBody progressBodyWeightDTO: ProgressBodyWeightDTO) {
         userService.saveProgressWeight(progressBodyWeightDTO = progressBodyWeightDTO)
+    }
+
+    @DeleteMapping("progress_bodyweight")
+    fun deleteBodyWeight(@RequestBody progressBodyWeightDTO: ProgressBodyWeightDTO) {
+        userService.deleteProgressWeight(progressBodyWeightDTO = progressBodyWeightDTO)
     }
 }

@@ -1,5 +1,6 @@
 package org.example.fittracker.user.service.impl
 
+import jakarta.transaction.Transactional
 import org.example.fittracker.user.data.models.UserEntity
 import org.example.fittracker.user.data.models.UserStatsEntity
 import org.example.fittracker.user.data.models.enums.Gender
@@ -12,12 +13,13 @@ import org.example.fittracker.user.service.dtos.UserDataDTO
 import org.example.fittracker.user.service.dtos.UserStartingTrainingStatsDTO
 import org.example.fittracker.user.service.dtos.UserStatsDTO
 import org.example.fittracker.user.service.dtos.UserTrainingDataDTO
-import org.example.fittracker.user.service.util.toProgressWeightEntity
+import org.example.fittracker.user.service.util.toProgressBodyWeightEntity
 import org.example.fittracker.user.service.util.toUserDataDTO
 import org.example.fittracker.user.service.util.toUserStatsEntity
 import org.example.fittracker.user.service.util.toUserTrainingDataDTO
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Service
@@ -44,7 +46,7 @@ class UserServiceImpl(
 
     override fun findUserByEmail(email: String): UserDataDTO? {
         val optional = userRepository.findByEmail(email = email)
-        if (optional != null) {
+        if (optional.get() != null) {
             val userEntity = optional.get()
 
             return userEntity.toUserDataDTO()
@@ -58,14 +60,10 @@ class UserServiceImpl(
     }
 
     override fun findUserTrainDataById(): UserTrainingDataDTO {
-        val userId = SecurityContextHolder.getContext().authentication?.principal as String
-        val formattedCreatorId = "${userId.substring(startIndex = 0, endIndex = 8)}-${userId.substring(startIndex = 8, endIndex = 12)}-${userId.substring(startIndex = 12, endIndex = 16)}-${userId.substring(startIndex = 16, endIndex = 20)}-${userId.substring(startIndex = 20)}"
-        val uUID = UUID.fromString(formattedCreatorId)
+        val userEntity = findUser()
 
-        val optional = this.userRepository.findById(uUID)
-
-        if (optional.isPresent) {
-            return optional.get().toUserTrainingDataDTO()
+        if (userEntity != null) {
+            return userEntity.toUserTrainingDataDTO()
         }
 
         throw IllegalArgumentException("Invalid data format")
@@ -76,39 +74,29 @@ class UserServiceImpl(
     }
 
     override fun saveUserStats(userStatsDTO: UserStatsDTO) {
-        userStatsRepository.save(userStatsEntity = userStatsDTO.toUserStatsEntity())
+        userStatsRepository.save(userStatsDTO.toUserStatsEntity())
     }
 
     override fun saveUserStartingTrainingData(userStartingTrainingStatsDTO: UserStartingTrainingStatsDTO) {
-        val userId = SecurityContextHolder.getContext().authentication?.principal as String
-        val formattedCreatorId = "${userId.substring(startIndex = 0, endIndex = 8)}-${userId.substring(startIndex = 8, endIndex = 12)}-${userId.substring(startIndex = 12, endIndex = 16)}-${userId.substring(startIndex = 16, endIndex = 20)}-${userId.substring(startIndex = 20)}"
-        val uUID = UUID.fromString(formattedCreatorId)
-
-        val optional = this.userRepository.findById(uUID)
-
-        if (optional.isPresent) {
-            val userEntity = optional.get()
-
-
-            var userStatsEntity: UserStatsEntity? = userEntity.userStatsEntity
-            val updatedUserStatsEntity: UserStatsEntity
-            if (userStatsEntity != null) {
-                updatedUserStatsEntity = userStatsEntity.copy(
-                    weight = userStartingTrainingStatsDTO.weight,
+        val userEntity = findUser()
+        if (userEntity != null) {
+            val userStatsEntity: UserStatsEntity? = userEntity.userStatsEntity
+            var updatedUserStatsEntity: UserStatsEntity = userStatsEntity?.copy(
+                height = userStartingTrainingStatsDTO.height,
+                age = userStartingTrainingStatsDTO.age,
+                gender = Gender.valueOf(userStartingTrainingStatsDTO.gender)
+            )
+                ?: UserStatsEntity(
                     height = userStartingTrainingStatsDTO.height,
                     age = userStartingTrainingStatsDTO.age,
                     gender = Gender.valueOf(userStartingTrainingStatsDTO.gender)
                 )
-            } else {
-                updatedUserStatsEntity = UserStatsEntity(
-                    weight = userStartingTrainingStatsDTO.weight,
-                    height = userStartingTrainingStatsDTO.height,
-                    age = userStartingTrainingStatsDTO.age,
-                    gender = Gender.valueOf(userStartingTrainingStatsDTO.gender)
-                )
-            }
 
-            userStatsRepository.save(userStatsEntity = updatedUserStatsEntity)
+            updatedUserStatsEntity = updatedUserStatsEntity.copy(
+                user = userEntity
+            )
+
+            userStatsRepository.save(updatedUserStatsEntity)
 
             val updatedUser = userEntity.copy(userStatsEntity = updatedUserStatsEntity)
 
@@ -116,33 +104,80 @@ class UserServiceImpl(
         }
     }
 
+    @Transactional
     override fun saveProgressWeight(progressBodyWeightDTO: ProgressBodyWeightDTO) {
-        val userId = SecurityContextHolder.getContext().authentication?.principal as String
-        val formattedCreatorId = "${userId.substring(startIndex = 0, endIndex = 8)}-${userId.substring(startIndex = 8, endIndex = 12)}-${userId.substring(startIndex = 12, endIndex = 16)}-${userId.substring(startIndex = 16, endIndex = 20)}-${userId.substring(startIndex = 20)}"
-        val uUID = UUID.fromString(formattedCreatorId)
-
-        val optional = this.userRepository.findById(uUID)
-
-        if (optional.isPresent) {
-            val userEntity = optional.get()
+        val userEntity = findUser()
+        if (userEntity != null) {
             val userStatsEntity = userEntity.userStatsEntity
             if (userStatsEntity != null) {
-                var progressWeightEntity = progressBodyWeightDTO.toProgressWeightEntity()
-                progressWeightEntity = progressWeightEntity.copy(
+                var progressBodyWeightEntity = progressBodyWeightDTO.toProgressBodyWeightEntity()
+                progressBodyWeightEntity = progressBodyWeightEntity.copy(
                     userStatsEntity = userStatsEntity
                 )
-                progressWeightRepository.save(progressWeightEntity)
 
-                val updatedWeightProgressEntities = userStatsEntity.progressWeightEntities.plus(element = progressBodyWeightDTO.toProgressWeightEntity())
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                val existingEntity = userStatsEntity.progressBodyWeightEntities.find { progressBodyWeightEntityItem ->
+                    progressBodyWeightEntityItem.recordAt.format(formatter) == progressBodyWeightEntity.recordAt.format(formatter)
+                }
 
-                val updatedUserStatsEntity =  userStatsEntity.copy(
-                    progressWeightEntities = updatedWeightProgressEntities
+                if (existingEntity != null) {
+                    val updatedProgressBodyWeightEntities = userStatsEntity.progressBodyWeightEntities.minus(element = existingEntity).plus(element = progressBodyWeightEntity)
+                    val updatedUserStatsEntity = userStatsEntity.copy(
+                        progressBodyWeightEntities = updatedProgressBodyWeightEntities
+                    )
+
+                    val existingEntityId = existingEntity.id
+                    if (existingEntityId != null) {
+                        progressWeightRepository.deleteById(existingEntityId)
+                    }
+                    progressWeightRepository.save(progressBodyWeightEntity)
+                    userStatsRepository.save(updatedUserStatsEntity)
+                } else {
+                    userStatsEntity.progressBodyWeightEntities.plus(element = progressBodyWeightEntity)
+
+                    progressWeightRepository.save(progressBodyWeightEntity)
+                    userStatsRepository.save(userStatsEntity)
+                }
+            }
+        }
+    }
+
+    override fun deleteProgressWeight(progressBodyWeightDTO: ProgressBodyWeightDTO) {
+        val userEntity = findUser()
+        if (userEntity != null) {
+            val userStatsEntity = userEntity.userStatsEntity
+
+            if (userStatsEntity != null) {
+                val progressBodyWeightEntity = progressBodyWeightDTO.toProgressBodyWeightEntity()
+                progressWeightRepository.delete(progressBodyWeightEntity)
+
+
+                val updatedUserStatsEntity = userStatsEntity.copy(
+                    progressBodyWeightEntities = userStatsEntity.progressBodyWeightEntities.minus(element = progressBodyWeightEntity)
                 )
 
-                val updatedUser = userEntity.copy(userStatsEntity = updatedUserStatsEntity)
+                userStatsRepository.save(updatedUserStatsEntity)
 
-                userRepository.save(user = updatedUser)
+                val updatedUserEntity = userEntity.copy(
+                    userStatsEntity = updatedUserStatsEntity
+                )
+
+                userRepository.save(updatedUserEntity)
             }
+        }
+    }
+
+     override fun findUser(): UserEntity? {
+        val userId = SecurityContextHolder.getContext().authentication?.principal as String
+        val formattedCreatorId = "${userId.substring(startIndex = 0, endIndex = 8)}-${userId.substring(startIndex = 8, endIndex = 12)}-${userId.substring(startIndex = 12, endIndex = 16)}-${userId.substring(startIndex = 16, endIndex = 20)}-${userId.substring(startIndex = 20)}"
+        val uuid = UUID.fromString(formattedCreatorId)
+
+        val optional = this.userRepository.findById(uuid)
+
+        return if (optional.isPresent) {
+            optional.get()
+        } else {
+            null
         }
     }
 }

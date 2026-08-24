@@ -18,4 +18,6 @@ interface UserService {
     fun saveUserStats(userStatsDTO: UserStatsDTO)
     fun saveUserStartingTrainingData(userStartingTrainingStatsDTO: UserStartingTrainingStatsDTO)
     fun saveProgressWeight(progressBodyWeightDTO: ProgressBodyWeightDTO)
+    fun deleteProgressWeight(progressBodyWeightDTO: ProgressBodyWeightDTO)
+    fun findUser(): UserEntity?
 }

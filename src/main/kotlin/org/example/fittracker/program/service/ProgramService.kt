@@ -6,5 +6,7 @@ import java.util.*
 
 interface ProgramService {
     fun createProgram(createProgramDTO: CreateProgramDTO)
-    fun getProgramsByCreatorId(id: UUID): List<ProgramDTO>
+    fun getProgramsByCreatorId(): List<ProgramDTO>
+    fun deleteProgram(programDTO: ProgramDTO)
+    fun getCratedPrograms(): List<ProgramDTO>
 }

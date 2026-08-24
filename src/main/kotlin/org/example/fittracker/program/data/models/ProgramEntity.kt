@@ -34,7 +34,7 @@ data class ProgramEntity(
     @JoinColumn(name = "user_id")
     val creator: UserEntity,
 
-    @ManyToMany(mappedBy = "usedPrograms")
+    @ManyToMany(mappedBy = "savedPrograms")
     val users: List<UserEntity> = emptyList(),
 
     @OneToMany(mappedBy = "program")
@@ -68,5 +68,8 @@ data class ProgramEntity(
     val equipment: Equipment,
 
     @OneToMany(mappedBy = "program")
-    val reviewEntities: List<ReviewEntity> = emptyList()
+    val reviewEntities: List<ReviewEntity> = emptyList(),
+
+    @Column
+    val isPublic: Boolean = false
 )

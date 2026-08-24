@@ -7,5 +7,5 @@ import java.util.UUID
 
 @Repository
 interface UserStatsRepository: JpaRepository<UserStatsEntity, UUID> {
-    fun save(userStatsEntity: UserStatsEntity)
+
 }

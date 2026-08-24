@@ -14,7 +14,6 @@ import java.util.UUID
 fun UserStatsEntity.toUserStatsDTO(): UserStatsDTO {
     return UserStatsDTO(
         id = this.id.toString(),
-        weightKg = this.weight,
         heightCm = this.height,
         gender = this.gender.toString(),
         age = this.age,
@@ -23,13 +22,12 @@ fun UserStatsEntity.toUserStatsDTO(): UserStatsDTO {
         lifetimeTrainingHours = this.lifetimeTrainingHours,
         lifetimePRs = this.lifetimePRs,
         progressPhotosDTOs = this.progressPhotoEntities.map { it.toProgressPhotoDTO() },
-        progressBodyWeightDTOS = progressWeightEntities.map { progressWeightEntity -> progressWeightEntity.toProgressWeightDTO() }
+        progressBodyWeightDTOS = progressBodyWeightEntities.map { progressWeightEntity -> progressWeightEntity.toProgressWeightDTO() }
     )
 }
 
 fun UserStatsDTO.toUserStatsEntity(): UserStatsEntity {
     return UserStatsEntity(
-        weight = this.weightKg,
         height = this.heightCm,
         gender = Gender.valueOf(this.gender),
         age = this.age,
@@ -38,7 +36,7 @@ fun UserStatsDTO.toUserStatsEntity(): UserStatsEntity {
         lifetimeTrainingHours = this.lifetimeTrainingHours,
         lifetimePRs = this.lifetimePRs,
         progressPhotoEntities = this.progressPhotosDTOs.map { it.toProgressPhotoEntity() },
-        progressWeightEntities = this.progressBodyWeightDTOS.map { it.toProgressWeightEntity() }
+        progressBodyWeightEntities = this.progressBodyWeightDTOS.map { it.toProgressBodyWeightEntity() }
     )
 }
 
@@ -50,7 +48,7 @@ fun ProgressBodyWeightEntity.toProgressWeightDTO(): ProgressBodyWeightDTO {
     )
 }
 
-fun ProgressBodyWeightDTO.toProgressWeightEntity(): ProgressBodyWeightEntity {
+fun ProgressBodyWeightDTO.toProgressBodyWeightEntity(): ProgressBodyWeightEntity {
     return ProgressBodyWeightEntity(
         id = if (this.id != null) UUID.fromString(this.id) else null,
         weight = this.weight,

@@ -1,5 +1,6 @@
 package org.example.fittracker.user.data.models
 
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -20,11 +21,8 @@ data class UserStatsEntity(
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: UUID? = null,
 
-    @OneToOne(mappedBy = "userStatsEntity")
+    @OneToOne(mappedBy = "userStatsEntity", cascade = [CascadeType.ALL])
     val user: UserEntity? = null,
-
-    @Column
-    val weight: Int = 0,
 
     @Column
     val height: Int = 0,
@@ -48,9 +46,28 @@ data class UserStatsEntity(
     @Column
     val lifetimePRs: Int = 0,
 
-    @OneToMany(mappedBy = "userStatsEntity")
+    @OneToMany(mappedBy = "userStatsEntity", cascade = [CascadeType.ALL])
     val progressPhotoEntities: List<ProgressPhotoEntity> = emptyList(),
 
-    @OneToMany(mappedBy = "userStatsEntity")
-    val progressWeightEntities: List<ProgressBodyWeightEntity> = emptyList()
-)
+    @OneToMany(mappedBy = "userStatsEntity", cascade = [CascadeType.ALL])
+    val progressBodyWeightEntities: List<ProgressBodyWeightEntity> = emptyList()
+
+
+) {
+    override fun toString(): String {
+        return "UserStatsEntity(id=$id)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UserStatsEntity
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}

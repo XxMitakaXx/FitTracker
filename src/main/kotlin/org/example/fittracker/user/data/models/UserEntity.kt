@@ -45,7 +45,7 @@ data class UserEntity(
         joinColumns = [JoinColumn(name = "user_id")],
         inverseJoinColumns = [JoinColumn(name = "program_id")]
     )
-    val usedPrograms: List<ProgramEntity> = emptyList(),
+    val savedPrograms: List<ProgramEntity> = emptyList(),
 
     @OneToOne
     @JoinColumn(name = "user_entity_id", referencedColumnName = "id")
@@ -59,5 +59,24 @@ data class UserEntity(
     val reviewEntities: List<ReviewEntity> = emptyList(),
 
     @Column(nullable = false)
-    val createdAt: Date = Date(),
-)
+    val createdAt: Date = Date()
+
+
+) {
+    override fun toString(): String {
+        return "UserEntity(id=$id)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UserEntity
+
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+}
